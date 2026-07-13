@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة المراسلة - Facebook Messenger</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- شريط الحالة العلوي -->
+    <header class="top-bar">
+        <div class="logo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Facebook Messenger</span>
+        </div>
+        <div class="status-info">
+            <div class="status-item" id="connectionStatus">
+                <span class="dot" id="statusDot"></span>
+                <span id="statusText">جاري التحميل...</span>
+            </div>
+            <div class="status-item">
+                <span class="icon">📨</span>
+                <span id="sentDisplay">0</span>/<span id="maxDisplay">40</span>
+            </div>
+            <div class="status-item" id="apiStatus">
+                <span class="icon">🔌</span>
+                <span id="apiText">API: غير مهيأ</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- الحاوية الرئيسية -->
+    <div class="container">
+        <!-- === شاشة 1: تسجيل الدخول === -->
+        <section class="screen active" id="loginScreen">
+            <div class="card animated">
+                <div class="card-header">
+                    <div class="step-badge">1</div>
+                    <h2>🔑 تسجيل الدخول بالكوكيز</h2>
+                </div>
+                <div class="card-body">
+                    <div class="instruction-box">
+                        <h4>📋 خطوات جلب الكوكيز:</h4>
+                        <ol>
+                            <li>افتح <strong>فيسبوك</strong> في متصفح عادي (وليس خفي)</li>
+                            <li>اضغط <kbd>F12</kbd> ← اختر <strong>Console</strong></li>
+                            <li>اكتب الأمر: <code class="code-snippet">document.cookie</code> واضغط Enter</li>
+                            <li>انسخ النص الناتج كاملاً والصقه في المربع بالأسفل</li>
+                        </ol>
+                        <div class="tip">
+                            💡 <strong>ملاحظة:</strong> إذا طلب منك الموقع الكوكيز مرة أخرى، فقط كرر العملية.
+                            الكوكيز مشفرة ومخزنة بأمان على الخادم.
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="cookiesInput">📋 الصق الكوكيز هنا:</label>
+                        <textarea id="cookiesInput" placeholder="wd=1280x593;dpr=1.5;c_user=61591142694005;xs=24%3AyMKbY1w1Oc1HVw%3A2%3A..."></textarea>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-lg" onclick="login()" id="loginBtn">
+                        <span>🔑</span> تسجيل الدخول
+                    </button>
+                    
+                    <div class="message-box" id="loginMessage"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- === شاشة 2: قائمة المراسلين === -->
+        <section class="screen" id="contactsScreen">
+            <div class="card animated">
+                <div class="card-header">
+                    <div class="step-badge">2</div>
+                    <h2>📋 قائمة المراسلين</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-sm btn-outline" onclick="logout()">🚪 خروج</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="🔍 بحث عن مراسل..." oninput="filterContacts()">
+                        <button class="btn btn-primary" onclick="fetchContacts()" id="fetchBtn">
+                            📥 تحديث القائمة
+                        </button>
+                    </div>
+                    
+                    <div id="contactsLoading" class="loading-spinner hidden">
+                        <div class="spinner"></div>
+                        <p>جاري جلب المراسلين...</p>
+                    </div>
+                    
+                    <div id="contactsArea" class="hidden">
+                        <div class="contacts-toolbar">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="selectAll" onchange="toggleAll()" checked>
+                                <strong>تحديد الكل</strong>
+                            </label>
+                            <span id="contactsCount" class="count-badge">0 مراسل</span>
+                        </div>
+                        
+                        <div class="contacts-table-wrapper">
+                            <table class="contacts-table" id="contactsTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width:40px;">✓</th>
+                                        <th>الاسم</th>
+                                        <th>آخر رسالة</th>
+                                        <th style="width:80px;">الرسائل</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contactsBody"></tbody>
+                            </table>
+                        </div>
+                        
+                        <div id="emptyState" class="empty-state hidden">
+                            <div class="empty-icon">📭</div>
+                            <h3>لا يوجد مراسلين</h3>
+                            <p>لم يتم العثور على أي محادثات. تأكد من وجود محادثات سابقة في صفحتك.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- === شاشة 3: الإرسال === -->
+            <div class="card animated hidden" id="sendCard">
+                <div class="card-header">
+                    <div class="step-badge">3</div>
+                    <h2>✉️ إرسال رسائل جماعية</h2>
+                </div>
+                <div class="card-body">
+                    <div class="input-group">
+                        <label for="messageInput">
+                            💬 نص الرسالة
+                            <span class="label-hint">(استخدم <code>{name}</code> لاسم المستلم)</span>
+                        </label>
+                        <textarea id="messageInput" placeholder="مرحبا {name}، هذه رسالة تجريبية من منصة المراسلة..." rows="4"></textarea>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="progress-text" id="progressText"></div>
+                    </div>
+                    
+                    <button class="btn btn-success btn-lg" onclick="sendBroadcast()" id="sendBtn">
+                        <span>🚀</span> إرسال جماعي
+                    </button>
+                    
+                    <div class="message-box" id="sendMessage"></div>
+                    
+                    <!-- نتائج الإرسال -->
+                    <div id="resultsArea" class="hidden">
+                        <h3>📊 نتائج الإرسال</h3>
+                        <div class="results-grid">
+                            <div class="result-card success-card" id="successCount">0 نجاح</div>
+                            <div class="result-card fail-card" id="failCount">0 فشل</div>
+                        </div>
+                        <div class="results-details" id="resultsDetails"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- سجل العمليات -->
+    <footer class="log-footer" id="logFooter">
+        <div class="log-header" onclick="toggleLog()">
+            <span>📊 سجل العمليات</span>
+            <span id="logArrow">▼</span>
+        </div>
+        <div class="log-content" id="logContent">
+            <div id="output" class="log-output">
+                <div class="log-entry">
+                    <span class="log-time">[${new Date().toLocaleTimeString()}]</span>
+                    <span class="log-info">✅ المنصة جاهزة. سجل الدخول للبدء...</span>
+                </div>
+            </div>
+            <div class="log-actions">
+                <button class="btn btn-sm" onclick="clearLog()">مسح</button>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
