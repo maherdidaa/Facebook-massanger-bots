@@ -1,0 +1,22 @@
+{
+  "name": "facebook-messenger-api",
+  "version": "3.0.0",
+  "description": "منصة متكاملة لإدارة رسائل فيسبوك ماسنجر",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
+    "helmet": "^8.0.0",
+    "express-rate-limit": "^7.5.0",
+    "express-session": "^1.18.1",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
